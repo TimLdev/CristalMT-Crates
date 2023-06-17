@@ -1,6 +1,7 @@
 package dev.tim.crates.manager;
 
 import dev.tim.crates.CratesPlugin;
+import dev.tim.crates.model.Key;
 import dev.tim.crates.util.ChatUtil;
 import dev.tim.crates.util.ShulkerBoxUtil;
 import org.bukkit.Bukkit;
@@ -34,14 +35,14 @@ public class CrateManager {
 
     public void createCrate(String name, String createdBy, String shulkerboxColor, Location location){
         String id = String.valueOf(new Random().nextInt(9999999) + 10000);
-        crateConfig.set(id + ".name", name);
-        crateConfig.set(id + ".createdBy", createdBy);
-        crateConfig.set(id + ".shulkerboxColor", shulkerboxColor);
-        crateConfig.set(id + ".location.world", location.getWorld().getName());
-        crateConfig.set(id + ".location.x", location.getX());
-        crateConfig.set(id + ".location.y", location.getY());
-        crateConfig.set(id + ".location.z", location.getZ());
-        crateConfig.set(id + ".contents", new ArrayList<>(Arrays.asList(new ItemStack(Material.DIRT, 1))));
+        crateConfig.set("crates." + id + ".name", name);
+        crateConfig.set("crates." + id + ".createdBy", createdBy);
+        crateConfig.set("crates." + id + ".shulkerboxColor", shulkerboxColor);
+        crateConfig.set("crates." + id + ".location.world", location.getWorld().getName());
+        crateConfig.set("crates." + id + ".location.x", location.getX());
+        crateConfig.set("crates." + id + ".location.y", location.getY());
+        crateConfig.set("crates." + id + ".location.z", location.getZ());
+        crateConfig.set("crates." + id + ".contents", new ArrayList<>(Arrays.asList(new ItemStack(Material.DIRT, 1))));
         saveCrateFile();
 
         location.getWorld().getBlockAt(location).setType(ShulkerBoxUtil.getShulkerBox(shulkerboxColor));
@@ -58,10 +59,10 @@ public class CrateManager {
         for(String crateId : getCrateIds()){
             if(id.equals(crateId)){
                 Location location = new Location(
-                        Bukkit.getWorld(crateConfig.getString(crateId + ".location.world")),
-                        crateConfig.getDouble(crateId + ".location.x"),
-                        crateConfig.getDouble(crateId + ".location.y"),
-                        crateConfig.getDouble(crateId + ".location.z"));
+                        Bukkit.getWorld(crateConfig.getString("crates." + crateId + ".location.world")),
+                        crateConfig.getDouble("crates." + crateId + ".location.x"),
+                        crateConfig.getDouble("crates." + crateId + ".location.y"),
+                        crateConfig.getDouble("crates." + crateId + ".location.z"));
                 location.getBlock().setType(Material.AIR);
 
                 for(Entity entity : location.getWorld().getNearbyEntities(location, 1, 1, 1)){
@@ -70,7 +71,7 @@ public class CrateManager {
                     }
                 }
 
-                crateConfig.set(crateId, null);
+                crateConfig.set("crates." + crateId, null);
                 saveCrateFile();
                 break;
             }
@@ -78,14 +79,23 @@ public class CrateManager {
     }
 
     public void giveKey(Player player, String crateId, int amount){
-        ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK, amount);
-        ItemMeta keyMeta = key.getItemMeta();
-        keyMeta.setDisplayName(ChatColor.YELLOW.toString() + ChatColor.BOLD + "Crate Key");
-        keyMeta.setLore(Arrays.asList(ChatColor.WHITE + "Rechtsklik op crate om te openen", ChatColor.WHITE + "Key voor: " + ChatColor.RESET + ChatUtil.translate(crateConfig.getString(crateId + ".name")), crateId));
-        keyMeta.addEnchant(Enchantment.DURABILITY, 1, true);
-        keyMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        key.setItemMeta(keyMeta);
-        player.getInventory().addItem(key);
+        player.getInventory().addItem(new Key(crateId, amount, this).getAsItemStack());
+    }
+
+    public void addLostKey(Player player, String crateId, int amount){
+        List<ItemStack> keys = new ArrayList<>();
+
+        if(crateConfig.getList("lostkeys." + player.getUniqueId()) != null){
+            for(Object object : crateConfig.getList("lostkeys." + player.getUniqueId())){
+                ItemStack item = (ItemStack) object;
+                keys.add(item);
+            }
+        }
+
+        keys.add(new Key(crateId, amount, this).getAsItemStack());
+
+        crateConfig.set("lostkeys." + player.getUniqueId(), keys);
+        saveCrateFile();
     }
 
     public void giveKeyAll(Player player){
@@ -104,7 +114,7 @@ public class CrateManager {
 
     public void loadCrateFile(){
         plugin.getDataFolder().mkdir();
-        crateFile = new File(plugin.getDataFolder(), "crates.yml");
+        crateFile = new File(plugin.getDataFolder(), "data.yml");
         if(!crateFile.exists()){
             try {
                 crateFile.createNewFile();
@@ -120,7 +130,9 @@ public class CrateManager {
     }
 
     public Set<String> getCrateIds(){
-        return crateConfig.getKeys(false);
+        if(crateConfig.getConfigurationSection("crates.") == null){
+            return null;
+        }
+        return crateConfig.getConfigurationSection("crates.").getKeys(false);
     }
-
 }

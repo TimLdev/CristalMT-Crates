@@ -33,12 +33,16 @@ public class InteractListener implements Listener {
 
         Block clickedBlock = event.getClickedBlock();
 
+        if(crateManager.getCrateIds() == null){
+            return;
+        }
+
         for(String crateId : crateManager.getCrateIds()){
             Location location = new Location(
-                    Bukkit.getWorld(crateManager.getCrateConfig().getString(crateId + ".location.world")),
-                    crateManager.getCrateConfig().getDouble(crateId + ".location.x"),
-                    crateManager.getCrateConfig().getDouble(crateId + ".location.y"),
-                    crateManager.getCrateConfig().getDouble(crateId + ".location.z"));
+                    Bukkit.getWorld(crateManager.getCrateConfig().getString("crates." + crateId + ".location.world")),
+                    crateManager.getCrateConfig().getDouble("crates." + crateId + ".location.x"),
+                    crateManager.getCrateConfig().getDouble("crates." + crateId + ".location.y"),
+                    crateManager.getCrateConfig().getDouble("crates." + crateId + ".location.z"));
 
             Block crate = location.getWorld().getBlockAt(location);
 

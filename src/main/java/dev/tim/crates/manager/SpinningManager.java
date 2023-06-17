@@ -31,7 +31,7 @@ public class SpinningManager {
 
     public void setupInventory(Inventory inv, String crateId){
         List<ItemStack> rewards = new ArrayList<>();
-        for(Object object : crateManager.getCrateConfig().getList(crateId + ".contents")){
+        for(Object object : crateManager.getCrateConfig().getList("crates." + crateId + ".contents")){
             rewards.add((ItemStack) object);
         }
 
@@ -61,13 +61,13 @@ public class SpinningManager {
     }
 
     public void spin(Player player, String crateId){
-        Inventory inventory = Bukkit.createInventory(player, 27, ChatUtil.translate(crateManager.getCrateConfig().getString(crateId + ".name")));
+        Inventory inventory = Bukkit.createInventory(player, 27, ChatUtil.translate(crateManager.getCrateConfig().getString("crates." + crateId + ".name")));
         setupInventory(inventory, crateId);
         inventories.add(inventory);
         player.openInventory(inventory);
 
         List<ItemStack> rewards = new ArrayList<>();
-        for(Object object : crateManager.getCrateConfig().getList(crateId + ".contents")){
+        for(Object object : crateManager.getCrateConfig().getList("crates." + crateId + ".contents")){
             rewards.add((ItemStack) object);
         }
 

@@ -14,3 +14,6 @@ commands:
       /crate givekey <spelerNaam> <crateID> <aantal> - Geef een speler key(s) voor een crate
       /crate keyall - Krijg 1 key voor elke crate
       /crate list - Krijg een lijst van alle crates
+  verlorenkeys:
+    description: Krijg je verloren key(s) terug
+    usage: /<command>

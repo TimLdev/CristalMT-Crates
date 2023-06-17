@@ -1,6 +1,7 @@
 package dev.tim.crates;
 
 import dev.tim.crates.command.CrateCommand;
+import dev.tim.crates.command.VerlorenKeysCommand;
 import dev.tim.crates.listener.InteractListener;
 import dev.tim.crates.listener.MenuListener;
 import dev.tim.crates.manager.CrateManager;
@@ -23,6 +24,7 @@ public final class CratesPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
         getServer().getPluginManager().registerEvents(new InteractListener(this), this);
         getCommand("crate").setExecutor(new CrateCommand(this));
+        getCommand("verlorenkeys").setExecutor(new VerlorenKeysCommand(this));
 
         Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "Crates plugin aangezet");
     }

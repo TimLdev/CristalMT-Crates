@@ -6,6 +6,7 @@ import dev.tim.crates.menu.CrateContentsMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,7 +29,7 @@ public class MenuListener implements Listener {
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent event){
+    public void onInventoryContentsClose(InventoryCloseEvent event){
         String title = event.getView().getTitle();
 
         if(!(title.contains("Inhoud-"))){
@@ -47,10 +48,38 @@ public class MenuListener implements Listener {
             contents.add(item);
         }
 
-        crateManager.getCrateConfig().set(crateId + ".contents", contents);
+        crateManager.getCrateConfig().set("crates." + crateId + ".contents", contents);
         crateManager.saveCrateFile();
 
         player.sendMessage(ChatColor.GREEN + "Crate inhoud aangepast");
+    }
+
+    @EventHandler
+    public void onInventoryLostKeysClose(InventoryCloseEvent event){
+        Player player = (Player) event.getPlayer();
+        String title = event.getView().getTitle();
+
+        if(!(title.equals("Verloren Keys"))){
+            return;
+        }
+
+        if(event.getInventory().getContents().length == 0){
+            crateManager.getCrateConfig().set("lostkeys." + player.getUniqueId(), null);
+            crateManager.saveCrateFile();
+            return;
+        }
+
+        List<ItemStack> keys = new ArrayList<>();
+
+        for(ItemStack key : event.getInventory().getContents()){
+            if(key == null || key.getType() != Material.TRIPWIRE_HOOK){
+                continue;
+            }
+            keys.add(key);
+        }
+
+        crateManager.getCrateConfig().set("lostkeys." + player.getUniqueId(), keys);
+        crateManager.saveCrateFile();
     }
 
     @EventHandler
@@ -77,10 +106,13 @@ public class MenuListener implements Listener {
             String crateId = event.getCurrentItem().getItemMeta().getDisplayName();
 
             if(event.getClick() == ClickType.RIGHT){
-                crateManager.deleteCrate(crateId);
                 player.closeInventory();
+                if(!player.hasPermission("crate.delete")){
+                    player.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
+                    return;
+                }
+                crateManager.deleteCrate(crateId);
                 player.sendMessage(ChatColor.GREEN + "Crate verwijdert");
-
             } else if(event.getClick() == ClickType.LEFT){
                 if(!player.hasPermission("crate.contents")){
                     player.closeInventory();

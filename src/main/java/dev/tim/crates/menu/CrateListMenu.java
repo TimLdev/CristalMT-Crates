@@ -23,14 +23,14 @@ public class CrateListMenu {
         YamlConfiguration crateConfig = plugin.getCrateManager().getCrateConfig();
 
         for(String crateId : plugin.getCrateManager().getCrateIds()){
-            ItemStack item = new ItemStack(ShulkerBoxUtil.getShulkerBox(crateConfig.getString(crateId + ".shulkerboxColor")));
+            ItemStack item = new ItemStack(ShulkerBoxUtil.getShulkerBox(crateConfig.getString("crates." + crateId + ".shulkerboxColor")));
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(crateId);
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Naam: " + ChatColor.RESET + ChatUtil.translate(crateConfig.getString(crateId + ".name")));
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Gemaakt Door: " + ChatColor.WHITE + crateConfig.getString(crateId + ".createdBy"));
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Shulkerbox kleur: " + ChatColor.WHITE + crateConfig.getString(crateId + ".shulkerboxColor"));
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locatie: " + ChatColor.WHITE + "Wereld: " + crateConfig.getString(crateId + ".location.world") + " X: " + crateConfig.getString(crateId + ".location.x") + " Y: " + crateConfig.getString(crateId + ".location.y") + " Z: " + crateConfig.getString(crateId + ".location.z"));
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Naam: " + ChatColor.RESET + ChatUtil.translate(crateConfig.getString("crates." + crateId + ".name")));
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Gemaakt Door: " + ChatColor.WHITE + crateConfig.getString("crates." + crateId + ".createdBy"));
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Shulkerbox kleur: " + ChatColor.WHITE + crateConfig.getString("crates." + crateId + ".shulkerboxColor"));
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locatie: " + ChatColor.WHITE + "Wereld: " + crateConfig.getString("crates." + crateId + ".location.world") + " X: " + crateConfig.getString("crates." + crateId + ".location.x") + " Y: " + crateConfig.getString("crates." + crateId + ".location.y") + " Z: " + crateConfig.getString("crates." + crateId + ".location.z"));
             lore.add(" ");
             lore.add(ChatColor.GRAY + "Rechtsklik om te verwijderen");
             lore.add(ChatColor.GRAY + "Linksklik om de inhoud te veranderen");

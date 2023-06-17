@@ -4,6 +4,7 @@ import dev.tim.crates.CratesPlugin;
 import dev.tim.crates.manager.CrateManager;
 import dev.tim.crates.menu.CrateContentsMenu;
 import dev.tim.crates.menu.CrateListMenu;
+import dev.tim.crates.util.InventoryUtil;
 import dev.tim.crates.util.ShulkerBoxUtil;
 import dev.tim.crates.util.StringIntegerUtil;
 import org.bukkit.Bukkit;
@@ -42,7 +43,12 @@ public class CrateCommand implements CommandExecutor{
                         return true;
                     }
 
-                    if(crateManager.getCrateIds().size() == 0 || crateManager.getCrateIds() == null){
+                    if(crateManager.getCrateIds() == null){
+                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds().size() == 0 ){
                         player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
                     } else {
                         crateManager.giveKeyAll(player);
@@ -62,7 +68,12 @@ public class CrateCommand implements CommandExecutor{
                         return true;
                     }
 
-                    if(crateManager.getCrateIds().size() == 0 || crateManager.getCrateIds() == null){
+                    if(crateManager.getCrateIds() == null){
+                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds().size() == 0){
                         player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
                     } else {
                         new CrateListMenu(plugin, player);
@@ -76,6 +87,11 @@ public class CrateCommand implements CommandExecutor{
                 case "delete":
                     if(!sender.hasPermission("crate.delete")){
                         sender.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds() == null){
+                        sender.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
                         return true;
                     }
 
@@ -102,6 +118,11 @@ public class CrateCommand implements CommandExecutor{
 
                     if(!player.hasPermission("crate.contents")){
                         player.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds() == null){
+                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
                         return true;
                     }
 
@@ -162,6 +183,11 @@ public class CrateCommand implements CommandExecutor{
                     return true;
                 }
 
+                if(crateManager.getCrateIds() == null){
+                    sender.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                    return true;
+                }
+
                 Player target = Bukkit.getPlayer(args[1]);
                 if(target == null) {
                     sender.sendMessage(ChatColor.RED + "Speler niet gevonden");
@@ -178,9 +204,14 @@ public class CrateCommand implements CommandExecutor{
                     sender.sendMessage(ChatColor.RED + "Crate niet gevonden");
                 } else {
                     if(StringIntegerUtil.isInteger(args[3])){
-                        crateManager.giveKey(target, args[2], Integer.parseInt(args[3]));
+                        if(InventoryUtil.hasAvailableSlot(target)){
+                            crateManager.giveKey(target, args[2], Integer.parseInt(args[3]));
+                            target.sendMessage(ChatColor.GREEN + "Je hebt " + args[3] + " crate key(s) ontvangen");
+                        } else {
+                            crateManager.addLostKey(target, args[2], Integer.parseInt(args[3]));
+                            target.sendMessage(ChatColor.GREEN + "Je hebt " + args[3] + " crate key(s) ontvangen, maar je inventory zit vol dus zitten de key(s) bij " + ChatColor.YELLOW + "/verlorenkeys");
+                        }
                         sender.sendMessage(ChatColor.GREEN + args[3] + " crate key(s) gegeven aan " + target.getDisplayName());
-                        target.sendMessage(ChatColor.GREEN + "Je hebt " + args[3] + " crate key(s) ontvangen");
                     } else {
                         sender.sendMessage(ChatColor.RED + "Het aantal moet een geheel nummer zijn");
                     }

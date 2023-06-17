@@ -19,10 +19,10 @@ public class CrateContentsMenu {
         if(managing){
             inventory = Bukkit.createInventory(player, 27, "Inhoud-" + crateId);
         } else {
-            inventory = Bukkit.createInventory(player, 27, "Beloningen van " + ChatUtil.translate(crateConfig.getString(crateId + ".name")));
+            inventory = Bukkit.createInventory(player, 27, "Beloningen van " + ChatUtil.translate(crateConfig.getString("crates." + crateId + ".name")));
         }
 
-        for(Object object : crateConfig.getList(crateId + ".contents")){
+        for(Object object : crateConfig.getList("crates." + crateId + ".contents")){
             ItemStack item = (ItemStack) object;
             inventory.addItem(item);
         }
