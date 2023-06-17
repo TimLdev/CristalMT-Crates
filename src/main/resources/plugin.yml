@@ -1,0 +1,16 @@
+name: Crates
+version: '${project.version}'
+main: dev.tim.crates.CratesPlugin
+authors: [Tim]
+description: Crates plugin
+website: youtube.com/@zwess
+commands:
+  crate:
+    description: Hoofd commando voor de Crates plugin
+    usage: |-
+      /crate create <shulkerBoxKleur> <naam> - Maak een crate
+      /crate delete <crateID> - Verwijder een crate
+      /crate contents <crateID> - Verander inhoud van crate
+      /crate givekey <spelerNaam> <crateID> <aantal> - Geef een speler key(s) voor een crate
+      /crate keyall - Krijg 1 key voor elke crate
+      /crate list - Krijg een lijst van alle crates
