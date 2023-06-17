@@ -11,8 +11,9 @@ A Spigot crates plugin made for the Dutch Minetopia server CristalMT.
 - Create & delete crates
 - Set & edit rewards for crates
 - Spinning GUI when opening a crate
-- The correct key is needed to open the corresponding crate
+- Keys for opening crates
 - Hologram above the crates
+- When receiving keys but there is no space in your inventory, those keys will appear in a personal menu where you can get them (`/verlorenkeys`)
 
 ## Commands
       /crate create <shulkerBoxKleur> <naam> - Maak een crate
@@ -21,6 +22,8 @@ A Spigot crates plugin made for the Dutch Minetopia server CristalMT.
       /crate givekey <spelerNaam> <crateID> <aantal> - Geef een speler key(s) voor een crate
       /crate keyall - Krijg 1 key voor elke crate
       /crate list - Krijg een lijst van alle crates
+
+      /verlorenkeys - Krijg je verloren key(s) terug
 ## Contact
 Discord: **tim_dev**
 ## Pictures
