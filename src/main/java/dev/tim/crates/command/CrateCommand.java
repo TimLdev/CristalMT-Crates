@@ -1,5 +1,7 @@
 package dev.tim.crates.command;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import dev.tim.crates.CratesPlugin;
 import dev.tim.crates.manager.CrateManager;
 import dev.tim.crates.menu.CrateContentsMenu;
@@ -14,14 +16,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 public class CrateCommand implements CommandExecutor{
 
     private final CratesPlugin plugin;
     private final CrateManager crateManager;
+    private final Cache<UUID, Long> keyAllCooldown;
 
     public CrateCommand(CratesPlugin plugin){
         this.plugin = plugin;
         this.crateManager = plugin.getCrateManager();
+        keyAllCooldown = CacheBuilder.newBuilder().expireAfterWrite(60, TimeUnit.SECONDS).build();
     }
 
     @Override
@@ -29,56 +36,30 @@ public class CrateCommand implements CommandExecutor{
         Player player;
 
         if(args.length == 1){
-            switch (args[0]){
-                case "keyall":
-                    if(!(sender instanceof Player)){
-                        sender.sendMessage(ChatColor.RED + "Dit commando kan alleen via een speler worden uitgevoerd");
-                        return true;
-                    }
-
-                    player = (Player) sender;
-
-                    if(!player.hasPermission("crate.keyall")){
-                        player.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
-                        return true;
-                    }
-
-                    if(crateManager.getCrateIds() == null){
-                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
-                        return true;
-                    }
-
-                    if(crateManager.getCrateIds().size() == 0 ){
-                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
-                    } else {
-                        crateManager.giveKeyAll(player);
-                        player.sendMessage(ChatColor.GREEN + "Key(s) gekregen");
-                    }
+            if(args[0].equals("list")){
+                if(!(sender instanceof Player)){
+                    sender.sendMessage(ChatColor.RED + "Dit commando kan alleen via een speler worden uitgevoerd");
                     return true;
-                case "list":
-                    if(!(sender instanceof Player)){
-                        sender.sendMessage(ChatColor.RED + "Dit commando kan alleen via een speler worden uitgevoerd");
-                        return true;
-                    }
+                }
 
-                    player = (Player) sender;
+                player = (Player) sender;
 
-                    if(!player.hasPermission("crate.list")){
-                        player.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
-                        return true;
-                    }
-
-                    if(crateManager.getCrateIds() == null){
-                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
-                        return true;
-                    }
-
-                    if(crateManager.getCrateIds().size() == 0){
-                        player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
-                    } else {
-                        new CrateListMenu(plugin, player);
-                    }
+                if(!player.hasPermission("crate.list")){
+                    player.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
                     return true;
+                }
+
+                if(crateManager.getCrateIds() == null){
+                    player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                    return true;
+                }
+
+                if(crateManager.getCrateIds().size() == 0){
+                    player.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                } else {
+                    new CrateListMenu(plugin, player);
+                }
+                return true;
             }
         }
 
@@ -136,6 +117,57 @@ public class CrateCommand implements CommandExecutor{
                         player.sendMessage(ChatColor.RED + "Crate niet gevonden");
                     } else {
                         new CrateContentsMenu(plugin, args[1], player, true);
+                    }
+                    return true;
+                case "keyall":
+                    if(!sender.hasPermission("crate.keyall")){
+                        sender.sendMessage(ChatColor.RED + "Je hebt geen permissie voor dit commando");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds() == null){
+                        sender.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                        return true;
+                    }
+
+                    if(crateManager.getCrateIds().size() == 0){
+                        sender.sendMessage(ChatColor.RED + "Er zijn nog geen crates gemaakt");
+                        return true;
+                    }
+
+                    if(StringIntegerUtil.isInteger(args[1])){
+                        int amount = Integer.parseInt(args[1]);
+                        if(amount > 5 || amount < 1){
+                            sender.sendMessage(ChatColor.RED + "Het aantal keys mag niet hoger dan 5 en lager dan 1");
+                            return true;
+                        }
+
+                        if(sender instanceof Player){
+                            player = (Player) sender;
+                            if(!keyAllCooldown.asMap().containsKey(player.getUniqueId())){
+                                keyAllCooldown.put(player.getUniqueId(), System.currentTimeMillis() + 60000);
+                            } else {
+                                long distance = (keyAllCooldown.asMap().get(player.getUniqueId()) - System.currentTimeMillis()) / 1000;
+                                player.sendMessage(ChatColor.RED + "Wacht " + distance + " seconden om dit opnieuw te kunnen gebruiken");
+                                return true;
+                            }
+                        }
+
+                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                            if(InventoryUtil.hasAvailableSlot(onlinePlayer)){
+                                crateManager.giveKeyAll(onlinePlayer, amount);
+                                onlinePlayer.sendMessage(ChatColor.GREEN + "Je hebt " + amount + " crate key(s) ontvangen");
+                            } else {
+                                for(String crateId : crateManager.getCrateIds()){
+                                    crateManager.addLostKey(onlinePlayer, crateId, amount);
+                                }
+                                onlinePlayer.sendMessage(ChatColor.GREEN + "Je hebt " + amount + " crate key(s) ontvangen, maar je inventory zit vol dus zitten de key(s) bij " + ChatColor.YELLOW + "/verlorenkeys");
+                            }
+                        }
+
+                        sender.sendMessage(ChatColor.GREEN + "Iedereen heeft " + amount + " key(s) gekregen voor elke crate");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Het aantal moet een geheel nummer zijn");
                     }
                     return true;
             }
@@ -204,14 +236,20 @@ public class CrateCommand implements CommandExecutor{
                     sender.sendMessage(ChatColor.RED + "Crate niet gevonden");
                 } else {
                     if(StringIntegerUtil.isInteger(args[3])){
-                        if(InventoryUtil.hasAvailableSlot(target)){
-                            crateManager.giveKey(target, args[2], Integer.parseInt(args[3]));
-                            target.sendMessage(ChatColor.GREEN + "Je hebt " + args[3] + " crate key(s) ontvangen");
-                        } else {
-                            crateManager.addLostKey(target, args[2], Integer.parseInt(args[3]));
-                            target.sendMessage(ChatColor.GREEN + "Je hebt " + args[3] + " crate key(s) ontvangen, maar je inventory zit vol dus zitten de key(s) bij " + ChatColor.YELLOW + "/verlorenkeys");
+                        int amount = Integer.parseInt(args[3]);
+                        if(amount < 1){
+                            sender.sendMessage(ChatColor.RED + "Het aantal keys mag niet lager zijn dan 1");
+                            return true;
                         }
-                        sender.sendMessage(ChatColor.GREEN + args[3] + " crate key(s) gegeven aan " + target.getDisplayName());
+
+                        if(InventoryUtil.hasAvailableSlot(target)){
+                            crateManager.giveKey(target, args[2], amount);
+                            target.sendMessage(ChatColor.GREEN + "Je hebt " + amount + " crate key(s) ontvangen");
+                        } else {
+                            crateManager.addLostKey(target, args[2], amount);
+                            target.sendMessage(ChatColor.GREEN + "Je hebt " + amount + " crate key(s) ontvangen, maar je inventory zit vol dus zitten de key(s) bij " + ChatColor.YELLOW + "/verlorenkeys");
+                        }
+                        sender.sendMessage(ChatColor.GREEN.toString() + amount + " crate key(s) gegeven aan " + target.getDisplayName());
                     } else {
                         sender.sendMessage(ChatColor.RED + "Het aantal moet een geheel nummer zijn");
                     }

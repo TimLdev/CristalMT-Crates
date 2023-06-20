@@ -98,9 +98,9 @@ public class CrateManager {
         saveCrateFile();
     }
 
-    public void giveKeyAll(Player player){
+    public void giveKeyAll(Player player, int amount){
         for(String crateId : getCrateIds()){
-            giveKey(player, crateId, 1);
+            giveKey(player, crateId, amount);
         }
     }
 
