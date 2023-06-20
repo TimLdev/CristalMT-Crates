@@ -20,7 +20,7 @@ A Spigot crates plugin made for the Dutch Minetopia server CristalMT.
       /crate delete <crateID> - Verwijder een crate
       /crate contents <crateID> - Verander inhoud van crate
       /crate givekey <spelerNaam> <crateID> <aantal> - Geef een speler key(s) voor een crate
-      /crate keyall - Krijg 1 key voor elke crate
+      /crate keyall <aantal> - Geef iedereen voor elke crate het gegeven aantal key(s)
       /crate list - Krijg een lijst van alle crates
 
       /verlorenkeys - Krijg je verloren key(s) terug
